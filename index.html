@@ -218,12 +218,41 @@
             margin-bottom: 20px;
             line-height: 1.4;
         }
+
+        /* Contenedor de Habeas Data */
+        .habeas-data-container {
+            text-align: justify;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            border: 1px solid #e3e6f0;
+            padding: 15px;
+            border-radius: 6px;
+            max-height: 250px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .habeas-data-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 15px;
+            margin-bottom: 12px;
+            color: #1a1a1a;
+        }
+        .habeas-data-subtitle {
+            text-align: center;
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 15px;
+            color: #4a4a4a;
+        }
     </style>
 </head>
 <body>
 
 <div class="form-container">
-    <!-- PANTALLA PREGUNTA BORRADOR (Si se encuentra progreso local) -->
+    <!-- PANTALLA PREGUNTA BORRADOR -->
     <div id="draftScreen" class="pantalla-borrador">
         <div class="header-container">
             <img src="https://lh3.googleusercontent.com/d/1MjgNe-zgyiBPShxkwT5053JND1hc4jY8" alt="GLOBAL LIFE" class="logo-img">
@@ -249,7 +278,7 @@
         </div>
 
         <form id="sheetForm">
-            <!-- Espacio donde se inyectarán las preguntas según la sección -->
+            <!-- Espacio donde se inyectarán las secciones y preguntas -->
             <div id="dynamicQuestionsContainer">
                 <div class="cargando-preguntas">Cargando formulario estructurado...</div>
             </div>
@@ -293,7 +322,7 @@
 
     let listaBloquesId = []; 
     let indexBloqueActual = 0; 
-    let preguntasCargadasServidor = []; // Guarda las preguntas traídas del JSON
+    let preguntasCargadasServidor = [];
 
     // 1. CARGA DINÁMICA DE PREGUNTAS Y SECCIONES
     document.addEventListener("DOMContentLoaded", function() {
@@ -309,18 +338,44 @@
                     if (data.preguntas && data.preguntas.length > 0) {
                         preguntasCargadasServidor = data.preguntas;
                         
+                        // Extraemos las secciones del Excel y agregamos la Sección 0 (Habeas Data) al inicio
                         const seccionesUnicas = [...new Set(data.preguntas.map(p => p.seccion))].sort((a, b) => a - b);
-                        listaBloquesId = seccionesUnicas;
+                        listaBloquesId = [0, ...seccionesUnicas]; // Sección 0 siempre de primera
 
-                        seccionesUnicas.forEach((secId, index) => {
+                        // Crear Bloque de la Sección 0 (Habeas Data)
+                        const bloqueHabeas = document.createElement("div");
+                        bloqueHabeas.className = "form-block bloque-seccion-0 active"; // Activo al cargar
+                        
+                        bloqueHabeas.innerHTML = `
+                            <div class="habeas-data-container">
+                                <div class="habeas-data-title">HABEAS DATA</div>
+                                <div class="habeas-data-subtitle">(Ley 1581 de 2012)</div>
+                                <p>De conformidad con lo previsto en la "Ley Estatutaria 1581 de 2012", y sus "Decretos reglamentarios" 1377 de 2013 y 1074 de 2015 capitulo 25; autorizo de manera previa, informada ,consentida, voluntaria e inequívoca como Titular de datos a la IPS "GLOBAL LIFE AMBULANCIAS SAS" para que realice el respectivo tratamiento de mis datos personales, mis imágenes y/o videos, y en especial aquellos definidos como datos sensibles, para que sean incorporados en una base de datos, responsabilidad de "GLOBAL LIFE AMBULANCIAS SAS"; tratados con las siguientes finalidades; académicos, empresariales, investigativos, científicos, de proyección social, comerciales, culturales, recreativos, deportivos, de interés general nacional e internacional, y para las actividades que se enmarquen dentro del objeto social, académico e institucional.</p>
+                                <p>De igual modo, declaro que no me encuentro obligado a autorizar el tratamiento de mis datos personales sensibles y que he sido informado que puedo ejercer los derechos de acceso, corrección, supresión, revocación o reclamo por infracción sobre mis datos, mediante escrito dirigido a "GLOBAL LIFE AMBULANCIAS SAS" en la dirección de correo electrónico notificacionesglobal@glambulancias.com, indicando en el "Asunto"; el derecho que deseo ejercer; o mediante correo ordinario remitido a la dirección, Cl 163 16 C 62 en la ciudad de Bogotá D.C. con base en la política de tratamiento de protección de datos, a la cual podré tener acceso en la página web http://www.glambulancias.com/</p>
+                            </div>
+                            <div class="form-group">
+                                <label style="text-align: center; font-weight: bold; margin-bottom: 12px;">¿Autoriza el tratamiento de datos, según lo anteriormente mencionado?</label>
+                                <select id="autorizaHabeas" name="Autoriza_Habeas_Data" required style="border: 2px solid #4A90E2;">
+                                    <option value="" disabled selected>Seleccione una opción</option>
+                                    <option value="SI">SI</option>
+                                    <option value="NO">NO</option>
+                                </select>
+                            </div>
+                        `;
+                        container.appendChild(bloqueHabeas);
+
+                        // Escuchador lógico para Habeas Data
+                        const selectHabeas = bloqueHabeas.querySelector("#autorizaHabeas");
+                        selectHabeas.addEventListener("change", manejarRespuestaHabeasData);
+
+                        // Crear el resto de bloques dinámicos según las secciones del Excel
+                        seccionesUnicas.forEach(secId => {
                             const bloqueDiv = document.createElement("div");
                             bloqueDiv.className = `form-block bloque-seccion-${secId}`;
-                            if (index === 0) {
-                                bloqueDiv.classList.add("active"); 
-                            }
                             container.appendChild(bloqueDiv);
                         });
 
+                        // Rellenar las secciones del Excel
                         data.preguntas.forEach(preg => {
                             const targetBlock = container.querySelector(`.bloque-seccion-${preg.seccion}`);
                             if (!targetBlock) return; 
@@ -444,7 +499,6 @@
                         const borradorIndex = localStorage.getItem(LOCAL_BLOQUE_KEY);
 
                         if (borradorRespuestas && borradorIndex) {
-                            // Mostrar la pantalla de decisión en lugar del formulario directamente
                             document.getElementById("formContent").style.display = "none";
                             document.getElementById("draftScreen").style.display = "block";
                         } else {
@@ -464,11 +518,51 @@
             });
     });
 
+    // LÓGICA DE DECISIÓN DE HABEAS DATA (SI / NO)
+    function manejarRespuestaHabeasData() {
+        const select = document.getElementById("autorizaHabeas");
+        const btnSiguiente = document.getElementById("btnSiguiente");
+        const msgDiv = document.getElementById('statusMensaje');
+
+        if (select.value === "SI") {
+            btnSiguiente.disabled = false;
+            btnSiguiente.innerText = "Siguiente";
+            msgDiv.style.display = "none";
+            guardarProgresoEnTiempoReal();
+        } else if (select.value === "NO") {
+            btnSiguiente.disabled = true;
+            // Salir del formulario inmediatamente
+            bloquearFormularioPorHabeasData();
+        }
+    }
+
+    function bloquearFormularioPorHabeasData() {
+        // Limpiamos borradores para no almacenar datos huérfanos
+        localStorage.removeItem(LOCAL_RESPUESTAS_KEY);
+        localStorage.removeItem(LOCAL_BLOQUE_KEY);
+
+        // Ocultar formulario principal y botones
+        document.getElementById("formContent").style.display = "none";
+        
+        // Mensaje de rechazo explicativo
+        const msgDiv = document.getElementById('statusMensaje');
+        msgDiv.innerHTML = `
+            <div style="font-size: 16px; margin-bottom: 20px; line-height: 1.5;">
+                <strong>Registro Cancelado</strong><br><br>
+                Usted ha seleccionado que <strong>NO autoriza</strong> el tratamiento de sus datos personales bajo la ley de Habeas Data.<br><br>
+                Para poder continuar con el proceso de registro ante <strong>GLOBAL LIFE AMBULANCIAS SAS</strong> es requisito legal obligatorio aceptar estos términos.<br><br>
+                Si se trató de un error, puede reiniciar el proceso.
+            </div>
+            <button class="btn-green" type="button" onclick="reiniciarFormulario()" style="margin-top: 10px; width: auto;">Iniciar de nuevo</button>
+        `;
+        msgDiv.className = "mensaje error";
+        msgDiv.style.display = "block";
+    }
+
     // 2. SISTEMA DE AUTOGUARDADO EN LOCAL STORAGE
     function guardarProgresoEnTiempoReal() {
         actualizarEstadoBotonEnviar();
 
-        // Creamos un diccionario con las respuestas actuales
         const formulario = document.getElementById("sheetForm");
         const formData = new FormData(formulario);
         const progreso = {};
@@ -477,7 +571,6 @@
             progreso[key] = value;
         }
 
-        // Guardamos las respuestas y el bloque actual
         localStorage.setItem(LOCAL_RESPUESTAS_KEY, JSON.stringify(progreso));
         localStorage.setItem(LOCAL_BLOQUE_KEY, indexBloqueActual.toString());
     }
@@ -491,7 +584,6 @@
             const progreso = JSON.parse(borradorRespuestas);
             const formulario = document.getElementById("sheetForm");
 
-            // Rellenar cada uno de los campos inyectados
             for (const campoNombre in progreso) {
                 const elementos = formulario.querySelectorAll(`[name="${campoNombre}"]`);
                 elementos.forEach(elem => {
@@ -499,16 +591,14 @@
                 });
             }
 
-            // Validar de inmediato el correo electrónico y celular cargados
+            // Validaciones al restaurar
             validarCorreoEnTiempoReal();
             const inputCelular = document.getElementById("campoCelular");
             if (inputCelular) {
-                // Ejecutamos manualmente la limpieza y validación sobre el teléfono
                 const event = { target: inputCelular };
                 validarCelularSinEspacios(event);
             }
 
-            // Volver a la sección guardada
             if (borradorIndex) {
                 indexBloqueActual = parseInt(borradorIndex, 10);
                 if (indexBloqueActual >= listaBloquesId.length) {
@@ -517,7 +607,6 @@
             }
         }
 
-        // Cambiar pantalla
         document.getElementById("draftScreen").style.display = "none";
         document.getElementById("formContent").style.display = "block";
         
@@ -525,14 +614,11 @@
     }
 
     function descartarBorrador() {
-        // Limpiamos los datos de la memoria
         localStorage.removeItem(LOCAL_RESPUESTAS_KEY);
         localStorage.removeItem(LOCAL_BLOQUE_KEY);
 
-        // Resetear el formulario físico
         document.getElementById("sheetForm").reset();
 
-        // Cambiar de pantalla e ir al inicio
         indexBloqueActual = 0;
         document.getElementById("draftScreen").style.display = "none";
         document.getElementById("formContent").style.display = "block";
@@ -553,7 +639,6 @@
 
         indexBloqueActual += direccion;
         
-        // Guardar la nueva posición de página
         localStorage.setItem(LOCAL_BLOQUE_KEY, indexBloqueActual.toString());
 
         actualizarVisualizacionBloques();
@@ -563,7 +648,6 @@
         const idSeccionNueva = listaBloquesId[indexBloqueActual];
         const bloqueNuevo = document.querySelector(`.bloque-seccion-${idSeccionNueva}`);
         
-        // Remover clase active de todos y solo dársela al correcto
         const todosLosBloques = document.querySelectorAll(".form-block");
         todosLosBloques.forEach(b => b.classList.remove("active"));
 
@@ -573,14 +657,23 @@
         const btnSiguiente = document.getElementById("btnSiguiente");
         const btnEnviar = document.getElementById("btnEnviar");
 
+        // En la sección 0 (Habeas Data) no hay botón atrás
         btnAtras.style.display = (indexBloqueActual === 0) ? "none" : "block";
 
-        if (indexBloqueActual === listaBloquesId.length - 1) {
+        if (indexBloqueActual === 0) {
+            // Lógica inicial para el Habeas Data
+            const selectHabeas = document.getElementById("autorizaHabeas");
+            btnSiguiente.style.display = "block";
+            btnEnviar.style.display = "none";
+            btnSiguiente.disabled = (selectHabeas.value !== "SI");
+        } else if (indexBloqueActual === listaBloquesId.length - 1) {
             btnSiguiente.style.display = "none";
             btnEnviar.style.display = "block";
             actualizarEstadoBotonEnviar();
         } else {
             btnSiguiente.style.display = "block";
+            btnSiguiente.disabled = false;
+            btnSiguiente.innerText = "Siguiente";
             btnEnviar.style.display = "none";
         }
     }
@@ -589,6 +682,12 @@
         const idSeccionActual = listaBloquesId[indexBloqueActual];
         const bloqueDom = document.querySelector(`.bloque-seccion-${idSeccionActual}`);
         if (!bloqueDom) return true;
+
+        // Si es bloque de Habeas Data
+        if (idSeccionActual === 0) {
+            const selectHabeas = document.getElementById("autorizaHabeas");
+            return (selectHabeas.value === "SI");
+        }
 
         const campos = bloqueDom.querySelectorAll("input[required], select[required]");
         let bloqueValido = true;
@@ -734,7 +833,6 @@
         .then(response => response.json())
         .then(data => {
             if(data.result === 'success') {
-                // ENVÍO EXITOSO: Limpiamos por completo el borrador local para un registro nuevo
                 localStorage.removeItem(LOCAL_RESPUESTAS_KEY);
                 localStorage.removeItem(LOCAL_BLOQUE_KEY);
 
@@ -761,7 +859,6 @@
 
     // REINICIAR EL FORMULARIO DESDE CERO
     function reiniciarFormulario() {
-        // Nos aseguramos de borrar cualquier rastro de borrador al empezar de cero
         localStorage.removeItem(LOCAL_RESPUESTAS_KEY);
         localStorage.removeItem(LOCAL_BLOQUE_KEY);
 
@@ -793,7 +890,6 @@
 
     // SALIR DEFINITIVAMENTE
     function salirDelFormulario() {
-        // Limpiamos los borradores
         localStorage.removeItem(LOCAL_RESPUESTAS_KEY);
         localStorage.removeItem(LOCAL_BLOQUE_KEY);
 
