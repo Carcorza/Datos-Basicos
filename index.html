@@ -32,7 +32,7 @@
             margin-bottom: 25px;
         }
         .logo-img {
-            max-width: 140px; /* Ajusta el tamaño del logo */
+            max-width: 140px;
             height: auto;
             margin-bottom: 15px;
             display: inline-block;
@@ -62,10 +62,10 @@
         
         /* Estilos de los Bloques de Secciones */
         .form-block {
-            display: none; /* Ocultamos todas las secciones de manera predeterminada */
+            display: none;
         }
         .form-block.active {
-            display: block; /* Solo la sección activa se vuelve visible */
+            display: block;
         }
 
         .form-group {
@@ -309,10 +309,9 @@
 </div>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyRBUnVQmn4n1erjpba1WM2Oe1ulLXMyDAfnDC7MCxzqRhZKUyvPmRwaL5xRLb7b6xJ/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyvGLkaPv8h2N_vp9lBzz9TwgYjQou_II1DY84OP8W9jd1roj-zM2DTMuj-iKNySUy3/exec";
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-    // Claves para el localStorage
     const LOCAL_RESPUESTAS_KEY = "global_life_respuestas_borrador";
     const LOCAL_BLOQUE_KEY = "global_life_bloque_actual";
 
@@ -324,7 +323,6 @@
     let indexBloqueActual = 0; 
     let preguntasCargadasServidor = [];
 
-    // 1. CARGA DINÁMICA DE PREGUNTAS Y SECCIONES
     document.addEventListener("DOMContentLoaded", function() {
         const container = document.getElementById("dynamicQuestionsContainer");
         const navButtons = document.getElementById("navigationButtons");
@@ -338,13 +336,17 @@
                     if (data.preguntas && data.preguntas.length > 0) {
                         preguntasCargadasServidor = data.preguntas;
                         
-                        // Extraemos las secciones del Excel y agregamos la Sección 0 (Habeas Data) al inicio
-                        const seccionesUnicas = [...new Set(data.preguntas.map(p => p.seccion))].sort((a, b) => a - b);
+                        // Obtenemos secciones ignorando la Sección 0 (Habeas Data) ya que la pintamos fija primero
+                        const seccionesUnicas = [...new Set(data.preguntas
+                            .filter(p => parseInt(p.seccion, 10) !== 0)
+                            .map(p => parseInt(p.seccion, 10))
+                        )].sort((a, b) => a - b);
+                        
                         listaBloquesId = [0, ...seccionesUnicas]; // Sección 0 siempre de primera
 
                         // Crear Bloque de la Sección 0 (Habeas Data)
                         const bloqueHabeas = document.createElement("div");
-                        bloqueHabeas.className = "form-block bloque-seccion-0 active"; // Activo al cargar
+                        bloqueHabeas.className = "form-block bloque-seccion-0 active";
                         
                         bloqueHabeas.innerHTML = `
                             <div class="habeas-data-container">
@@ -355,7 +357,7 @@
                             </div>
                             <div class="form-group">
                                 <label style="text-align: center; font-weight: bold; margin-bottom: 12px;">¿Autoriza el tratamiento de datos, según lo anteriormente mencionado?</label>
-                                <select id="autorizaHabeas" name="Autoriza_Habeas_Data" required style="border: 2px solid #4A90E2;">
+                                <select id="autorizaHabeas" name="Autoriza el tratamiento de datos, segun lo anteriormente mencionado. SI O NO" required style="border: 2px solid #4A90E2;">
                                     <option value="" disabled selected>Seleccione una opción</option>
                                     <option value="SI">SI</option>
                                     <option value="NO">NO</option>
@@ -364,20 +366,22 @@
                         `;
                         container.appendChild(bloqueHabeas);
 
-                        // Escuchador lógico para Habeas Data
                         const selectHabeas = bloqueHabeas.querySelector("#autorizaHabeas");
                         selectHabeas.addEventListener("change", manejarRespuestaHabeasData);
 
-                        // Crear el resto de bloques dinámicos según las secciones del Excel
+                        // Crear secciones dinámicas restantes
                         seccionesUnicas.forEach(secId => {
                             const bloqueDiv = document.createElement("div");
                             bloqueDiv.className = `form-block bloque-seccion-${secId}`;
                             container.appendChild(bloqueDiv);
                         });
 
-                        // Rellenar las secciones del Excel
+                        // Rellenar las preguntas que no pertenezcan a la Sección 0
                         data.preguntas.forEach(preg => {
-                            const targetBlock = container.querySelector(`.bloque-seccion-${preg.seccion}`);
+                            const seccionId = parseInt(preg.seccion, 10);
+                            if (seccionId === 0) return; // Se omite porque ya está dibujada arriba
+
+                            const targetBlock = container.querySelector(`.bloque-seccion-${seccionId}`);
                             if (!targetBlock) return; 
 
                             const formGroup = document.createElement("div");
@@ -390,7 +394,6 @@
                             const nombrePregunta = preg.texto.toLowerCase();
                             const tipoPreguntaStr = preg.tipo ? preg.tipo.toLowerCase() : "";
 
-                            // DETECCIÓN INTELIGENTE DE FECHA
                             if (nombrePregunta.includes("fecha") || tipoPreguntaStr === "fecha" || tipoPreguntaStr === "date") {
                                 const input = document.createElement("input");
                                 input.type = "date";
@@ -494,7 +497,7 @@
                         
                         navButtons.style.display = "flex";
 
-                        // VERIFICAR SI EXISTE UN BORRADOR PREVIO EN LOCALSTORAGE
+                        // Verificación de borrador
                         const borradorRespuestas = localStorage.getItem(LOCAL_RESPUESTAS_KEY);
                         const borradorIndex = localStorage.getItem(LOCAL_BLOQUE_KEY);
 
@@ -518,7 +521,6 @@
             });
     });
 
-    // LÓGICA DE DECISIÓN DE HABEAS DATA (SI / NO)
     function manejarRespuestaHabeasData() {
         const select = document.getElementById("autorizaHabeas");
         const btnSiguiente = document.getElementById("btnSiguiente");
@@ -531,20 +533,16 @@
             guardarProgresoEnTiempoReal();
         } else if (select.value === "NO") {
             btnSiguiente.disabled = true;
-            // Salir del formulario inmediatamente
             bloquearFormularioPorHabeasData();
         }
     }
 
     function bloquearFormularioPorHabeasData() {
-        // Limpiamos borradores para no almacenar datos huérfanos
         localStorage.removeItem(LOCAL_RESPUESTAS_KEY);
         localStorage.removeItem(LOCAL_BLOQUE_KEY);
 
-        // Ocultar formulario principal y botones
         document.getElementById("formContent").style.display = "none";
         
-        // Mensaje de rechazo explicativo
         const msgDiv = document.getElementById('statusMensaje');
         msgDiv.innerHTML = `
             <div style="font-size: 16px; margin-bottom: 20px; line-height: 1.5;">
@@ -559,7 +557,6 @@
         msgDiv.style.display = "block";
     }
 
-    // 2. SISTEMA DE AUTOGUARDADO EN LOCAL STORAGE
     function guardarProgresoEnTiempoReal() {
         actualizarEstadoBotonEnviar();
 
@@ -575,7 +572,6 @@
         localStorage.setItem(LOCAL_BLOQUE_KEY, indexBloqueActual.toString());
     }
 
-    // 3. RECUPERAR O DESCARTAR EL BORRADOR
     function recuperarBorrador() {
         const borradorRespuestas = localStorage.getItem(LOCAL_RESPUESTAS_KEY);
         const borradorIndex = localStorage.getItem(LOCAL_BLOQUE_KEY);
@@ -591,7 +587,6 @@
                 });
             }
 
-            // Validaciones al restaurar
             validarCorreoEnTiempoReal();
             const inputCelular = document.getElementById("campoCelular");
             if (inputCelular) {
@@ -626,7 +621,6 @@
         actualizarVisualizacionBloques();
     }
 
-    // NAVEGACIÓN
     function cambiarBloque(direccion) {
         if (direccion === 1 && !validarBloqueActual()) {
             alert("Por favor, rellene todos los campos obligatorios de esta sección de manera correcta antes de continuar.");
@@ -657,11 +651,9 @@
         const btnSiguiente = document.getElementById("btnSiguiente");
         const btnEnviar = document.getElementById("btnEnviar");
 
-        // En la sección 0 (Habeas Data) no hay botón atrás
         btnAtras.style.display = (indexBloqueActual === 0) ? "none" : "block";
 
         if (indexBloqueActual === 0) {
-            // Lógica inicial para el Habeas Data
             const selectHabeas = document.getElementById("autorizaHabeas");
             btnSiguiente.style.display = "block";
             btnEnviar.style.display = "none";
@@ -683,7 +675,6 @@
         const bloqueDom = document.querySelector(`.bloque-seccion-${idSeccionActual}`);
         if (!bloqueDom) return true;
 
-        // Si es bloque de Habeas Data
         if (idSeccionActual === 0) {
             const selectHabeas = document.getElementById("autorizaHabeas");
             return (selectHabeas.value === "SI");
@@ -723,7 +714,6 @@
         guardarProgresoEnTiempoReal();
     }
 
-    // CONTROL DEL BOTÓN DE ENVIAR
     function actualizarEstadoBotonEnviar() {
         const btn = document.getElementById("btnEnviar");
         if (!btn) return;
@@ -791,7 +781,6 @@
         guardarProgresoEnTiempoReal();
     }
 
-    // ENVÍO DE DATOS
     document.getElementById('sheetForm').addEventListener('submit', function(e) {
         e.preventDefault(); 
         
@@ -857,7 +846,6 @@
         });
     });
 
-    // REINICIAR EL FORMULARIO DESDE CERO
     function reiniciarFormulario() {
         localStorage.removeItem(LOCAL_RESPUESTAS_KEY);
         localStorage.removeItem(LOCAL_BLOQUE_KEY);
@@ -888,7 +876,6 @@
         document.getElementById('statusMensaje').style.display = "none";
     }
 
-    // SALIR DEFINITIVAMENTE
     function salirDelFormulario() {
         localStorage.removeItem(LOCAL_RESPUESTAS_KEY);
         localStorage.removeItem(LOCAL_BLOQUE_KEY);
