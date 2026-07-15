@@ -83,7 +83,38 @@
         .pantalla-borrador { display: none; text-align: center; padding: 10px 0; }
         .pantalla-borrador p { font-size: 16px; color: #333333; margin-bottom: 20px; line-height: 1.4; }
 
-        .habeas-data-container { text-align: justify; font-size: 13px; line-height: 1.6; color: #333333; background-color: #f8fafd; border: 1px solid #bcd0f7; padding: 15px; border-radius: 6px; max-height: 250px; overflow-y: auto; margin-bottom: 20px; }
+        /* DISEÑO DE CONTENEDOR HABEAS DATA MEJORADO */
+        .habeas-data-container { 
+            text-align: justify; 
+            font-size: 13.5px; 
+            line-height: 1.6; 
+            color: #333333; 
+            background-color: #f8fafd; 
+            border: 2px solid #bcd0f7; 
+            padding: 15px; 
+            border-radius: 6px; 
+            max-height: 220px; 
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch; /* Scroll táctil ultra fluido en iOS/Android */
+            margin-bottom: 20px; 
+        }
+        
+        /* DISEÑO DE LA BARRA DE SCROLL DE HABEAS DATA PARA QUE SEA SIEMPRE VISIBLE */
+        .habeas-data-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .habeas-data-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .habeas-data-container::-webkit-scrollbar-thumb {
+            background: #bcd0f7;
+            border-radius: 4px;
+        }
+        .habeas-data-container::-webkit-scrollbar-thumb:hover {
+            background: #2263fc;
+        }
+
         .habeas-data-title { text-align: center; font-weight: bold; font-size: 15px; margin-bottom: 12px; color: #2956b1; }
         .habeas-data-subtitle { text-align: center; font-weight: bold; font-size: 13px; margin-bottom: 15px; color: #659bee; }
 
@@ -202,14 +233,16 @@
                         
                         listaBloquesId = [0, ...seccionesUnicas];
 
-                        // Sección 0: Habeas Data
+                        // Sección 0: Habeas Data (Texto legal completo e interactivo)
                         const bloqueHabeas = document.createElement("div");
                         bloqueHabeas.className = "form-block bloque-seccion-0 active";
                         bloqueHabeas.innerHTML = `
                             <div class="habeas-data-container">
-                                <div class="habeas-data-title">HABEAS DATA</div>
-                                <div class="habeas-data-subtitle">(Ley 1581 de 2012)</div>
-                                <p>De conformidad con lo previsto en la "Ley Estatutaria 1581 de 2012"... autorizo de manera previa el tratamiento de mis datos personales...</p>
+                                <div class="habeas-data-title">AUTORIZACIÓN DE TRATAMIENTO DE DATOS</div>
+                                <div class="habeas-data-subtitle">(Habeas Data - Ley 1581 de 2012)</div>
+                                <p>De conformidad con lo dispuesto en la <strong>Ley Estatutaria 1581 de 2012</strong> y sus decretos reglamentarios, mediante los cuales se dicta el Régimen General de Protección de Datos Personales en Colombia, autorizo de manera previa, expresa, libre e informada a <strong>GLOBAL LIFE AMBULANCIAS S.A.S.</strong> para realizar la recolección, almacenamiento, uso, procesamiento, circulación y supresión de los datos de carácter personal que suministro a través del presente formulario.</p>
+                                <p>Entiendo que estos datos serán tratados con la finalidad de gestionar los procesos de selección, contratación, registro de hojas de vida, verificación de referencias, afiliaciones al sistema de seguridad social, y demás actividades administrativas del departamento de Talento Humano.</p>
+                                <p>Como titular de la información, declaro que conozco mis derechos de conocer, actualizar, rectificar y suprimir mis datos personales, así como presentar quejas ante la Superintendencia de Industria y Comercio (SIC), de acuerdo con la política de tratamiento de datos de la compañía.</p>
                             </div>
                             <div class="form-group">
                                 <label style="text-align: center; font-weight: bold; margin-bottom: 12px;">¿Autoriza el tratamiento de datos, según lo anteriormente mencionado?<span class="requerido">*</span></label>
@@ -239,7 +272,6 @@
                             const formGroup = document.createElement("div");
                             formGroup.className = "form-group";
 
-                            // LÓGICA MEJORADA PARA RECONOCER "SÍ" CON TILDE Y EN MAYÚSCULAS
                             const valorObligatorio = preg.obligatoria ? preg.obligatoria.toString().toLowerCase().trim() : "";
                             const esObligatoria = (valorObligatorio === "si" || valorObligatorio === "sí");
 
@@ -298,7 +330,7 @@
 
                             } else if (tipoPreguntaStr === "numero") {
                                 inputElement = document.createElement("input");
-                                inputElement.type = "tel"; // Abre teclado numérico en celulares
+                                inputElement.type = "tel"; // Despliega teclado numérico nativo
                                 inputElement.name = preg.texto;
                                 inputElement.placeholder = "Ingrese un número (máx. 10 dígitos)";
                                 inputElement.maxLength = 10;
@@ -306,13 +338,17 @@
 
                                 formGroup.appendChild(inputElement);
 
-                                // Sanitiza la entrada de caracteres no numéricos y limita a 10 dígitos
+                                // Sanitiza caracteres y limpia alerta en tiempo real
                                 inputElement.addEventListener("input", function(e) {
                                     const cursor = e.target.selectionStart;
-                                    let nums = e.target.value.replace(/\D/g, ""); // Borra todo lo que no sea número entero
+                                    let nums = e.target.value.replace(/\D/g, ""); // Remueve cualquier no-numérico
                                     if (nums.length > 10) nums = nums.slice(0, 10);
                                     e.target.value = nums;
                                     e.target.setSelectionRange(cursor, cursor); 
+                                    
+                                    if (nums.trim() !== "") {
+                                        e.target.classList.remove("campo-invalido");
+                                    }
                                     guardarProgresoEnTiempoReal();
                                 });
 
@@ -344,7 +380,7 @@
                             }
 
                             // EVENTOS GENERALES PARA QUITAR EL ROJO Y GUARDAR
-                            if (tipoPreguntaStr !== "numero") { // El de número ya tiene su propio listener de input
+                            if (tipoPreguntaStr !== "numero") {
                                 inputElement.addEventListener(inputElement.tagName === "SELECT" ? "change" : "input", function(e) {
                                     if (e.target.value.trim() !== "") {
                                         e.target.classList.remove("campo-invalido");
@@ -537,7 +573,6 @@
         }
     }
 
-    // LÓGICA DE VALIDACIÓN VISUAL EN ROJO
     function validarBloqueActual() {
         const idSeccionActual = listaBloquesId[indexBloqueActual];
         const bloqueDom = document.querySelector(`.bloque-seccion-${idSeccionActual}`);
@@ -578,6 +613,7 @@
         e.target.setSelectionRange(s, end);
     }
 
+    // Convertidor para correo
     function convertirAMinusculas(e) {
         const s = e.target.selectionStart, end = e.target.selectionEnd;
         e.target.value = e.target.value.toLowerCase();
