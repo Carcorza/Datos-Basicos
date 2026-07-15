@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formulario Inteligente Dinámico por Secciones</title>
+    <title>Formulario Datos Básicos - Global Life</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
+            font-family: 'Calibri', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f9;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -15,18 +15,22 @@
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
+            color: #333333; /* 80% Negro institucional */
         }
         .form-container {
             background-color: #ffffff;
             padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(41, 86, 177, 0.1); /* Sombra sutil con azul secundario */
             width: 100%;
             max-width: 500px;
             box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            border-top: 5px solid #2263fc; /* Línea decorativa superior azul principal */
         }
         
-        /* Contenedor del Encabezado con Logo */
+        /* Contenedor del Encabezado (Alineado con tu imagen institucional) */
         .header-container {
             text-align: center;
             margin-bottom: 25px;
@@ -39,25 +43,27 @@
         }
         .header-title {
             margin: 0;
-            color: #333333;
+            color: #2956b1; /* Azul oscuro institucional para el título principal */
             font-size: 20px;
-            font-weight: bold;
+            font-weight: 600;
             line-height: 1.3;
         }
         .header-subtitle {
             margin: 4px 0 0 0;
-            color: #1a1a1a;
-            font-size: 18px;
+            color: #333333; /* Gris corporativo intenso */
+            font-size: 17px;
             font-weight: 800;
             text-transform: uppercase;
             line-height: 1.3;
+            letter-spacing: 0.5px;
         }
         .header-department {
             margin: 4px 0 0 0;
-            color: #4a4a4a;
-            font-size: 17px;
-            font-weight: 600;
+            color: #659bee; /* Azul claro institucional */
+            font-size: 15px;
+            font-weight: bold;
             line-height: 1.3;
+            text-transform: uppercase;
         }
         
         /* Estilos de los Bloques de Secciones */
@@ -74,7 +80,7 @@
         label {
             display: block;
             margin-bottom: 8px;
-            color: #555;
+            color: #2956b1; /* Azul oscuro institucional para resaltar campos */
             font-weight: 600;
         }
         
@@ -86,12 +92,13 @@
         select {
             width: 100%;
             padding: 10px;
-            border: 2px solid #ccc;
+            border: 2px solid #bcd0f7; /* Borde suave azul claro */
             border-radius: 4px;
             box-sizing: border-box;
             font-size: 16px;
-            transition: border-color 0.3s;
+            transition: border-color 0.3s, box-shadow 0.3s;
             background-color: #fff;
+            color: #333333;
         }
         
         input[type="text"] {
@@ -103,20 +110,21 @@
 
         input:focus, select:focus {
             outline: none;
-            border-color: #4A90E2;
+            border-color: #2263fc; /* Azul Principal al enfocar */
+            box-shadow: 0 0 5px rgba(34, 99, 207, 0.3);
         }
         
         /* Clases de validación dinámica */
         input.campo-invalido {
-            border-color: #e05b5b !important;
+            border-color: #e74c3c !important; /* Rojo de advertencia estándar */
             background-color: #fff6f6;
         }
         input.campo-valido {
-            border-color: #2ecc71 !important;
+            border-color: #069334 !important; /* Verde Institucional de éxito */
             background-color: #f4fbf7;
         }
         .error-texto {
-            color: #e05b5b;
+            color: #e74c3c;
             font-size: 12px;
             margin-top: 5px;
             display: none;
@@ -138,18 +146,22 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        button:active {
+            transform: scale(0.98);
         }
         .btn-primary {
-            background-color: #4A90E2;
+            background-color: #2263fc; /* Azul Principal de la marca */
             color: white;
         }
         .btn-primary:hover {
-            background-color: #357ABD;
+            background-color: #2956b1; /* Pasa a azul oscuro */
         }
         .btn-primary:disabled {
-            background-color: #a5c7ee;
+            background-color: #659bee; /* Azul claro / deshabilitado */
             cursor: not-allowed;
+            opacity: 0.7;
         }
         .btn-secondary {
             background-color: #95a5a6;
@@ -161,29 +173,30 @@
 
         .mensaje {
             margin-top: 15px;
-            padding: 10px;
+            padding: 12px;
             border-radius: 4px;
             text-align: center;
             display: none;
             font-weight: 600;
         }
-        .exito { background-color: #d4edda; color: #155724; display: block; }
-        .error { background-color: #f8d7da; color: #721c24; display: block; }
+        .exito { background-color: #d4f2e1; color: #069334; display: block; border: 1px solid #069334; }
+        .error { background-color: #f8d7da; color: #721c24; display: block; border: 1px solid #f5c6cb; }
         
         .cargando-preguntas {
             text-align: center;
-            color: #666;
+            color: #659bee;
             font-style: italic;
             margin-bottom: 15px;
+            font-weight: bold;
         }
 
-        /* Pantalla de confirmación tras finalizar el envío */
+        /* Pantallas de Confirmación y Decisión */
         .pantalla-decision {
             display: none;
             text-align: center;
         }
         .pantalla-decision h3 {
-            color: #2c3e50;
+            color: #2956b1;
             margin-bottom: 20px;
         }
         .btn-decision-container {
@@ -192,11 +205,11 @@
             justify-content: center;
         }
         .btn-green {
-            background-color: #2ecc71;
+            background-color: #069334; /* Verde Institucional */
             color: white;
         }
         .btn-green:hover {
-            background-color: #27ae60;
+            background-color: #057a2b;
         }
         .btn-danger {
             background-color: #e74c3c;
@@ -214,7 +227,7 @@
         }
         .pantalla-borrador p {
             font-size: 16px;
-            color: #555;
+            color: #333333;
             margin-bottom: 20px;
             line-height: 1.4;
         }
@@ -224,9 +237,9 @@
             text-align: justify;
             font-size: 13px;
             line-height: 1.6;
-            color: #333;
-            background-color: #f8f9fa;
-            border: 1px solid #e3e6f0;
+            color: #333333;
+            background-color: #f8fafd; /* Fondo azul sumamente sutil */
+            border: 1px solid #bcd0f7; /* Borde con azul claro institucional */
             padding: 15px;
             border-radius: 6px;
             max-height: 250px;
@@ -238,14 +251,39 @@
             font-weight: bold;
             font-size: 15px;
             margin-bottom: 12px;
-            color: #1a1a1a;
+            color: #2956b1; /* Azul corporativo */
         }
         .habeas-data-subtitle {
             text-align: center;
             font-weight: bold;
             font-size: 13px;
             margin-bottom: 15px;
-            color: #4a4a4a;
+            color: #659bee; /* Azul claro secundario */
+        }
+
+        /* PIE DE PÁGINA */
+        .footer-divider {
+            border: 0;
+            height: 1px;
+            background-color: #bcd0f7; /* Línea divisoria en azul claro */
+            margin: 25px 0 15px 0;
+            width: 100%;
+        }
+        .footer-text-container {
+            text-align: center;
+            font-size: 12px;
+            color: #777777;
+            line-height: 1.5;
+        }
+        .footer-link {
+            color: #2263fc; /* Enlace en azul principal */
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .footer-link:hover {
+            text-decoration: underline;
+            color: #2956b1;
         }
     </style>
 </head>
@@ -269,7 +307,7 @@
 
     <!-- CONTENIDO PRINCIPAL DEL FORMULARIO -->
     <div id="formContent">
-        <!-- Encabezado con Logo -->
+        <!-- Encabezado con Logo y Colores Institucionales Reales -->
         <div class="header-container">
             <img src="https://lh3.googleusercontent.com/d/1MjgNe-zgyiBPShxkwT5053JND1hc4jY8" alt="GLOBAL LIFE" class="logo-img">
             <div class="header-title">Formulario Datos Básicos</div>
@@ -314,14 +352,21 @@
             <div class="header-title" style="margin-top: 10px;">GLOBAL LIFE AMBULANCIAS SAS</div>
             <div class="header-department">Talento Humano</div>
         </div>
-        <div style="margin-top: 25px; padding: 15px; background-color: #e8f4fd; border-left: 4px solid #4A90E2; border-radius: 4px; text-align: center;">
-            <p style="font-size: 16px; color: #2c3e50; font-weight: 600; margin: 0;">
+        <div style="margin-top: 25px; padding: 15px; background-color: #e8f4fd; border-left: 4px solid #2263fc; border-radius: 4px; text-align: center;">
+            <p style="font-size: 16px; color: #2956b1; font-weight: 600; margin: 0;">
                 ¡Muchas gracias por completar el registro!
             </p>
-            <p style="font-size: 14px; color: #555; margin: 8px 0 0 0;">
+            <p style="font-size: 14px; color: #333333; margin: 8px 0 0 0;">
                 El proceso ha finalizado correctamente y sus datos han sido guardados de manera segura.
             </p>
         </div>
+    </div>
+
+    <!-- PIE DE PÁGINA ESTILO LOGIN -->
+    <hr class="footer-divider">
+    <div class="footer-text-container">
+        <a href="https://www.glambulancias.com" target="_blank" class="footer-link">www.glambulancias.com</a>
+        <div style="margin-top: 4px;">Todos los derechos reservados &copy; 2026</div>
     </div>
 </div>
 
@@ -353,19 +398,17 @@
                     if (data.preguntas && data.preguntas.length > 0) {
                         preguntasCargadasServidor = data.preguntas;
                         
-                        // Obtenemos secciones ignorando la Sección 0 (Habeas Data) ya que la pintamos fija primero
                         const seccionesUnicas = [...new Set(data.preguntas
                             .filter(p => parseInt(p.seccion, 10) !== 0)
                             .map(p => parseInt(p.seccion, 10))
                         )].sort((a, b) => a - b);
                         
-                        listaBloquesId = [0, ...seccionesUnicas]; // Sección 0 siempre de primera
+                        listaBloquesId = [0, ...seccionesUnicas];
 
                         // Crear Bloque de la Sección 0 (Habeas Data)
                         const bloqueHabeas = document.createElement("div");
                         bloqueHabeas.className = "form-block bloque-seccion-0 active";
                         
-                        // Formateamos de forma idéntica a tu hoja la pregunta y el name
                         bloqueHabeas.innerHTML = `
                             <div class="habeas-data-container">
                                 <div class="habeas-data-title">HABEAS DATA</div>
@@ -375,7 +418,7 @@
                             </div>
                             <div class="form-group">
                                 <label style="text-align: center; font-weight: bold; margin-bottom: 12px;">¿Autoriza el tratamiento de datos, según lo anteriormente mencionado?</label>
-                                <select id="autorizaHabeas" name="¿Autoriza el tratamiento de datos, según lo anteriormente mencionado?" required style="border: 2px solid #4A90E2;">
+                                <select id="autorizaHabeas" name="¿Autoriza el tratamiento de datos, según lo anteriormente mencionado?" required style="border: 2px solid #2263fc;">
                                     <option value="" disabled selected>Seleccione una opción</option>
                                     <option value="SI">SI</option>
                                     <option value="NO">NO</option>
@@ -387,17 +430,15 @@
                         const selectHabeas = bloqueHabeas.querySelector("#autorizaHabeas");
                         selectHabeas.addEventListener("change", manejarRespuestaHabeasData);
 
-                        // Crear secciones dinámicas restantes
                         seccionesUnicas.forEach(secId => {
                             const bloqueDiv = document.createElement("div");
                             bloqueDiv.className = `form-block bloque-seccion-${secId}`;
                             container.appendChild(bloqueDiv);
                         });
 
-                        // Rellenar las preguntas que no pertenezcan a la Sección 0
                         data.preguntas.forEach(preg => {
                             const seccionId = parseInt(preg.seccion, 10);
-                            if (seccionId === 0) return; // Se omite porque ya está dibujada arriba
+                            if (seccionId === 0) return; 
 
                             const targetBlock = container.querySelector(`.bloque-seccion-${seccionId}`);
                             if (!targetBlock) return; 
@@ -515,7 +556,6 @@
                         
                         navButtons.style.display = "flex";
 
-                        // Verificación de borrador
                         const borradorRespuestas = localStorage.getItem(LOCAL_RESPUESTAS_KEY);
                         const borradorIndex = localStorage.getItem(LOCAL_BLOQUE_KEY);
 
@@ -527,15 +567,15 @@
                         }
 
                     } else {
-                        container.innerHTML = "<div style='text-align:center; color:#e05b5b;'>No hay preguntas en la hoja de cálculo.</div>";
+                        container.innerHTML = "<div style='text-align:center; color:#e74c3c;'>No hay preguntas en la hoja de cálculo.</div>";
                     }
                 } else {
-                    container.innerHTML = `<div style='color:red; text-align:center;'><strong>Error:</strong><br>${data.error}</div>`;
+                    container.innerHTML = `<div style='color:#e74c3c; text-align:center;'><strong>Error:</strong><br>${data.error}</div>`;
                 }
             })
             .catch(error => {
                 console.error("Error cargando preguntas:", error);
-                container.innerHTML = "<div style='color:red; text-align:center;'>Error de red al conectar con Google Sheets.</div>";
+                container.innerHTML = "<div style='color:#e74c3c; text-align:center;'>Error de red al conectar con Google Sheets.</div>";
             });
     });
 
@@ -563,7 +603,7 @@
         
         const msgDiv = document.getElementById('statusMensaje');
         msgDiv.innerHTML = `
-            <div style="font-size: 16px; margin-bottom: 20px; line-height: 1.5;">
+            <div style="font-size: 16px; margin-bottom: 20px; line-height: 1.5; color: #333333;">
                 <strong>Registro Cancelado</strong><br><br>
                 Usted ha seleccionado que <strong>NO autoriza</strong> el tratamiento de sus datos personales bajo la ley de Habeas Data.<br><br>
                 Para poder continuar con el proceso de registro ante <strong>GLOBAL LIFE AMBULANCIAS SAS</strong> es requisito legal obligatorio aceptar estos términos.<br><br>
