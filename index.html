@@ -165,7 +165,7 @@
 </div>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzxKBjubUXlGfZgeGAR_zig_-Mp07O0qsgLEP-ytwohZ9AZ1mx_KQM7or0jiSzjlfVk/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzof9NjrJF2ldpZUlDVQ-ItXjpcnw_01hfoLeJ8nFJFUX2QhCbUdjXcfVajBT1uyHB5/exec";
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
     const LOCAL_RESPUESTAS_KEY = "global_life_respuestas_borrador";
@@ -296,6 +296,26 @@
 
                                 inputElement.addEventListener("input", validarCelularSinEspacios);
 
+                            } else if (tipoPreguntaStr === "numero") {
+                                inputElement = document.createElement("input");
+                                inputElement.type = "tel"; // Abre teclado numérico en celulares
+                                inputElement.name = preg.texto;
+                                inputElement.placeholder = "Ingrese un número (máx. 10 dígitos)";
+                                inputElement.maxLength = 10;
+                                if (esObligatoria) inputElement.required = true;
+
+                                formGroup.appendChild(inputElement);
+
+                                // Sanitiza la entrada de caracteres no numéricos y limita a 10 dígitos
+                                inputElement.addEventListener("input", function(e) {
+                                    const cursor = e.target.selectionStart;
+                                    let nums = e.target.value.replace(/\D/g, ""); // Borra todo lo que no sea número entero
+                                    if (nums.length > 10) nums = nums.slice(0, 10);
+                                    e.target.value = nums;
+                                    e.target.setSelectionRange(cursor, cursor); 
+                                    guardarProgresoEnTiempoReal();
+                                });
+
                             } else if (preg.tipo === "seleccion" || preg.tipo === "Seleccion") {
                                 inputElement = document.createElement("select");
                                 inputElement.name = preg.texto;
@@ -324,12 +344,14 @@
                             }
 
                             // EVENTOS GENERALES PARA QUITAR EL ROJO Y GUARDAR
-                            inputElement.addEventListener(inputElement.tagName === "SELECT" ? "change" : "input", function(e) {
-                                if (e.target.value.trim() !== "") {
-                                    e.target.classList.remove("campo-invalido");
-                                }
-                                guardarProgresoEnTiempoReal();
-                            });
+                            if (tipoPreguntaStr !== "numero") { // El de número ya tiene su propio listener de input
+                                inputElement.addEventListener(inputElement.tagName === "SELECT" ? "change" : "input", function(e) {
+                                    if (e.target.value.trim() !== "") {
+                                        e.target.classList.remove("campo-invalido");
+                                    }
+                                    guardarProgresoEnTiempoReal();
+                                });
+                            }
 
                             // IDENTIFICACIÓN DEL CAMPO CONDICIONAL
                             if (nombrePregunta === "¿tiene hijos?" || nombrePregunta === "tiene hijos" || nombrePregunta === "tiene hijos?") {
@@ -566,8 +588,6 @@
         const btn = document.getElementById("btnEnviar");
         if (!btn) return;
         
-        // El botón siempre debe estar disponible para que ejecute validarBloqueActual() al presionarlo
-        // y marque en rojo los errores, pero podemos deshabilitarlo si hay un error severo activo.
         btn.disabled = false; 
         btn.innerText = "Enviar Registro";
     }
